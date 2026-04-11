@@ -1,0 +1,10 @@
+.DS_Store
+build/
+test/sim_build/
+test/results.xml
+test/tb.fst
+test/tb.vcd
+test/output/
+test/__pycache__/
+test/.pytest_cache/
+test/gate_level_netlist.v

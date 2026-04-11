@@ -1,0 +1,16 @@
+read_verilog -sv \
+    src/core/pe_mac.sv \
+    src/core/systolic_array_2x2.sv \
+    src/control/sa2x2_controller.sv \
+    src/tt_um_sohamgovande_sa2x2.sv
+
+hierarchy -top tt_um_sohamgovande_sa2x2
+proc
+opt
+fsm
+opt
+memory
+opt
+techmap
+opt
+stat

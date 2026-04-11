@@ -1,0 +1,46 @@
+# Tiny Tapeout project information
+project:
+  title:        "2x2 Systolic Primitive Engine"
+  author:       "Soham Govande"
+  discord:      ""
+  description:  "A tiny host-driven primitive engine with signed 2x2 systolic matmul, accumulate, add, ReLU, and shift on a 2x2 result bank."
+  language:     "SystemVerilog"
+  clock_hz:     10000000
+  tiles:        "1x1"
+  top_module:   "tt_um_sohamgovande_sa2x2"
+  source_files:
+    - "tt_um_sohamgovande_sa2x2.sv"
+    - "control/sa2x2_controller.sv"
+    - "core/pe_mac.sv"
+    - "core/systolic_array_2x2.sv"
+
+pinout:
+  ui[0]: "payload[0]"
+  ui[1]: "payload[1]"
+  ui[2]: "payload[2]"
+  ui[3]: "payload[3]"
+  ui[4]: "payload[4]"
+  ui[5]: "payload[5]"
+  ui[6]: "payload[6]"
+  ui[7]: "payload[7]"
+
+  uo[0]: "read_data[0]"
+  uo[1]: "read_data[1]"
+  uo[2]: "read_data[2]"
+  uo[3]: "read_data[3]"
+  uo[4]: "read_data[4]"
+  uo[5]: "read_data[5]"
+  uo[6]: "read_data[6]"
+  uo[7]: "read_data[7]"
+
+  uio[0]: "cmd_stb"
+  uio[1]: "cmd[0]"
+  uio[2]: "cmd[1]"
+  uio[3]: "addr[0]"
+  uio[4]: "addr[1]"
+  uio[5]: "busy"
+  uio[6]: "write_data[8]"
+  uio[7]: "read_data[8]"
+
+# Do not change!
+yaml_version: 6
