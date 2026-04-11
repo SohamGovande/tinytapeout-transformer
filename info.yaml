@@ -6,7 +6,7 @@ project:
   description:  "A tiny host-driven primitive engine with signed 2x2 systolic matmul, accumulate, add, ReLU, and shift on a 2x2 result bank."
   language:     "SystemVerilog"
   clock_hz:     10000000
-  tiles:        "1x1"
+  tiles:        "1x2"
   top_module:   "tt_um_sohamgovande_sa2x2"
   source_files:
     - "tt_um_sohamgovande_sa2x2.sv"
