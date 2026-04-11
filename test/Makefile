@@ -1,7 +1,7 @@
 # Makefile
 # See https://docs.cocotb.org/en/stable/quickstart.html for more info
 
-SIM ?= verilator
+SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
 FST ?= -fst
 
@@ -28,9 +28,12 @@ VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
 endif
 
 COMPILE_ARGS += -I$(SRC_DIR)
+
+ifeq ($(SIM),verilator)
 EXTRA_ARGS += --timing
 EXTRA_ARGS += --trace-fst
 EXTRA_ARGS += -Wno-fatal
+endif
 
 VERILOG_SOURCES += $(PWD)/tb.v
 TOPLEVEL = tb
