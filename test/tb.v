@@ -1,10 +1,6 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-`ifndef TB_DATA_W
-`define TB_DATA_W 4
-`endif
-
 module tb ();
 
   initial begin
@@ -26,9 +22,7 @@ module tb ();
   wire VGND = 1'b0;
 `endif
 
-  tt_um_sohamgovande_sa2x2 #(
-      .DATA_W(`TB_DATA_W)
-  ) user_project (
+  tt_um_sohamgovande_sa2x2 user_project (
 `ifdef GL_TEST
       .VPWR(VPWR),
       .VGND(VGND),

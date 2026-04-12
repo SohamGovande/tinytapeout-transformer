@@ -5,10 +5,11 @@
 
 `default_nettype none
 
-module tt_um_sohamgovande_sa2x2 #(
-    parameter int DATA_W = 4,
-    parameter int ACC_W = (2 * DATA_W) + 1
-) (
+`ifndef SA2X2_DATA_W
+`define SA2X2_DATA_W 4
+`endif
+
+module tt_um_sohamgovande_sa2x2 (
     input  wire [7:0] ui_in,
     output wire [7:0] uo_out,
     input  wire [7:0] uio_in,
@@ -23,6 +24,9 @@ module tt_um_sohamgovande_sa2x2 #(
     input wire VGND
 `endif
 );
+
+    localparam int DATA_W = `SA2X2_DATA_W;
+    localparam int ACC_W = (2 * DATA_W) + 1;
 
     wire [8:0] read_data;
     wire busy;

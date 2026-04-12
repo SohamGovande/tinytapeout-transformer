@@ -33,7 +33,7 @@ VERILOG_SOURCES += gate_level_netlist.v
 endif
 
 COMPILE_ARGS += -I$(SRC_DIR)
-COMPILE_ARGS += -DTB_DATA_W=$(DATA_W)
+COMPILE_ARGS += -DSA2X2_DATA_W=$(DATA_W)
 
 ifeq ($(SIM),verilator)
 EXTRA_ARGS += --timing

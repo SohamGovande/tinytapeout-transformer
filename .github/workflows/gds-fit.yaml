@@ -1,0 +1,44 @@
+name: gds-fit
+
+on:
+  workflow_dispatch:
+    inputs:
+      data_w:
+        description: Operand width to harden
+        required: true
+        default: "4"
+
+jobs:
+  gds_fit:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set default operand width
+        shell: bash
+        env:
+          DATA_W: ${{ inputs.data_w }}
+        run: |
+          perl -0pi -e 's/`define SA2X2_DATA_W \d+/`define SA2X2_DATA_W '"$DATA_W"'/' src/tt_um_sohamgovande_sa2x2.sv
+          grep -n "SA2X2_DATA_W" src/tt_um_sohamgovande_sa2x2.sv
+
+      - name: Build GDS
+        uses: TinyTapeout/tt-gds-action@ttsky26a
+        with:
+          pdk: sky130A
+
+      - name: Upload hardening artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gds-fit-w${{ inputs.data_w }}
+          path: |
+            runs/wokwi/flow.log
+            runs/wokwi/error.log
+            runs/wokwi/warning.log
+            runs/wokwi/results/**
+            runs/wokwi/reports/**
+            runs/wokwi/logs/**
