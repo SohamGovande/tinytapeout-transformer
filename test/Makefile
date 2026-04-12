@@ -1,7 +1,7 @@
 # Makefile
 # See https://docs.cocotb.org/en/stable/quickstart.html for more info
 
-DATA_W ?= 4
+DATA_W ?= 5
 ACC_W ?= $(shell expr $(DATA_W) \* 2 + 1)
 export SA2X2_DATA_W := $(DATA_W)
 export SA2X2_ACC_W := $(ACC_W)

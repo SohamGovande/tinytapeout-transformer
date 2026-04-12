@@ -17,13 +17,13 @@ because a Tiny Tapeout chip does not have enough gates for practical floating-po
 | Block | Shape / width | What it does |
 | --- | --- | --- |
 | Tiny Tapeout macro | `1x2` tiles, `161.00 x 225.76 um` | Physical footprint on the shuttle |
-| `A` bank | `2x2`, signed `9b` words | Host-written source matrix |
-| `B` bank | `2x2`, signed `9b` words | Host-written source matrix |
-| `C` bank | `2x2`, signed `9b` words | Result bank and accumulation target |
+| `A` bank | `2x2`, signed `5b` words | Host-written source matrix |
+| `B` bank | `2x2`, signed `5b` words | Host-written source matrix |
+| `C` bank | `2x2`, signed `11b` words | Result bank and accumulation target |
 | Systolic core | `2x2` MAC PEs | Computes one 2x2 matrix product |
-| Matmul operands | signed `4b` | The array only consumes `A[3:0]` and `B[3:0]` |
-| Matmul result | signed `9b` | Exact sum of two signed `4b x 4b` products |
-| Local synth snapshot | about `2388` generic cells | From `build/synth.log` with the current Yosys sanity flow |
+| Matmul operands | signed `5b` | The array consumes the full stored `A` and `B` words |
+| Matmul result | signed `11b` | Exact sum of two signed `5b x 5b` products |
+| Read bus | signed `9b` chunks | `A` and `B` fit in one chunk, `C` uses two |
 
 ## Systolic array
 
@@ -47,7 +47,7 @@ The design has two different scales:
 
 - The physical macro is a narrow `1x2` Tiny Tapeout slot with a Sky130 footprint of `161.00 x 225.76 um`.
 - The logical datapath is three 2x2 banks wrapped around the 2x2 PE array.
-- Host-visible storage is always signed `9b`, even though the systolic matmul path only uses the low `4b` slice of `A` and `B`.
+- Host-visible storage is signed `5b` for `A` and `B`, and signed `11b` for `C`.
 
 ## Datapath
 
@@ -80,7 +80,7 @@ The row-major address map is fixed everywhere in the design:
 | `2` | `[1][0]` |
 | `3` | `[1][1]` |
 
-Because the array only sees `A[3:0]` and `B[3:0]`, matrix-multiply operands should be requantized into the signed `-8..7` range before launch.
+Matrix-multiply operands should be requantized into the signed `-16..15` range before launch.
 
 ## Supported operations
 
@@ -94,7 +94,7 @@ Because the array only sees `A[3:0]` and `B[3:0]`, matrix-multiply operands shou
 
 Notes:
 
-- Add and accumulate wrap in signed `9b` arithmetic.
+- Add and accumulate wrap in signed `11b` arithmetic.
 - Shift is arithmetic right shift.
 - Commands issued while `busy=1` are ignored.
 
@@ -132,36 +132,43 @@ That fixed schedule is why the external interface can stay tiny while the intern
 | `uio_in[0]` | `cmd_stb`, pulse high for one cycle |
 | `uio_in[2:1]` | `cmd` |
 | `uio_in[4:3]` | `addr` |
-| `uio_in[6]` | high bit of a signed `9b` write value |
+| `uio_in[6]` | auxiliary write bit, unused in the default `5b` operand mode |
 
 ### Output pins
 
 | Pin | Meaning |
 | --- | --- |
-| `uo_out[7:0]` | low `8b` of the selected readback word |
-| `uio_out[7]` | high bit of the selected readback word |
+| `uo_out[7:0]` | low `8b` of the selected readback chunk |
+| `uio_out[7]` | high bit of the selected readback chunk |
+| `uio_out[6]` | always `0` |
 | `uio_out[5]` | `busy` |
 
-Interpret readback as `{uio_out[7], uo_out[7:0]}`.
+Interpret each returned chunk as `{uio_out[7], uo_out[7:0]}`.
 
 ### Command encoding
 
 | `cmd` | Meaning |
 | --- | --- |
-| `2'b00` | write `A[addr] <= {uio_in[6], ui_in[7:0]}` |
-| `2'b01` | write `B[addr] <= {uio_in[6], ui_in[7:0]}` |
+| `2'b00` | write `A[addr] <= ui_in[4:0]` |
+| `2'b01` | write `B[addr] <= ui_in[4:0]` |
 | `2'b10` | execute operation encoded in `ui_in` |
-| `2'b11` | select which bank and address appear on the output bus |
+| `2'b11` | select which bank, address, and read chunk appear on the output bus |
 
 ### Read bank select
 
-For `cmd=2'b11`, `ui_in[1:0]` selects the source:
+For `cmd=2'b11`, `ui_in[1:0]` selects the source and `ui_in[7:2]` selects the chunk:
 
 | `ui_in[1:0]` | Read bank |
 | --- | --- |
 | `0` | `A` |
 | `1` | `B` |
 | `2` | `C` |
+
+Default chunk usage:
+
+- `A` and `B` only use chunk `0`.
+- `C` chunk `0` returns bits `[8:0]`.
+- `C` chunk `1` returns bits `[10:9]` in the low bits of the 9-bit read bus.
 
 ### Execute payload
 

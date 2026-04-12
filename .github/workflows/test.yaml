@@ -3,7 +3,7 @@ name: test
 on: [push, workflow_dispatch]
 
 env:
-  DATA_W: 4
+  DATA_W: 5
 
 jobs:
   test:

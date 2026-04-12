@@ -1,6 +1,6 @@
 # Tiny Tapeout cocotb testbench
 
-This testbench drives the Tiny Tapeout wrapper directly. The tests write 4-bit matrix entries into the controller, pulse `start`, wait for `done`, and then read back the stored 9-bit results one address at a time.
+This testbench drives the Tiny Tapeout wrapper directly. The tests write signed 5-bit matrix entries into the `A` and `B` banks, launch operations through the execute command, and read back signed results over the 9-bit Tiny Tapeout read bus. The `C` bank is 11 bits wide, so `C` reads are reconstructed from two bus chunks.
 
 ## Setup
 

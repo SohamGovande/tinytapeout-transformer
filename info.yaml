@@ -3,7 +3,7 @@ project:
   title:        "2x2 Systolic Primitive Engine"
   author:       "Soham Govande"
   discord:      ""
-  description:  "A tiny host-driven primitive engine with signed 2x2 systolic matmul, accumulate, add, ReLU, and shift on a 2x2 result bank."
+  description:  "A tiny host-driven primitive engine with signed 5-bit operands, an 11-bit 2x2 result bank, systolic matmul, accumulate, add, ReLU, and shift."
   language:     "SystemVerilog"
   clock_hz:     10000000
   tiles:        "1x2"
@@ -39,7 +39,7 @@ pinout:
   uio[3]: "addr[0]"
   uio[4]: "addr[1]"
   uio[5]: "busy"
-  uio[6]: "write_data[8]"
+  uio[6]: "write_aux (unused in 5-bit mode)"
   uio[7]: "read_data[8]"
 
 # Do not change!

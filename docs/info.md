@@ -10,7 +10,7 @@ The internal datapath has:
 - a 2x2 result and accumulation bank `C`
 - a small addressable read mux for returning one stored word at a time
 
-Each stored bank entry is a signed 9-bit value. The systolic-array matmul path only consumes the low 4 bits of `A` and `B`, so matmul operands should be in the range `-8..7`. The `C` bank is wide enough to hold the exact sum of two signed 4-bit products.
+The `A` and `B` banks store signed 5-bit operands. The `C` bank stores signed 11-bit results, which is wide enough to hold the exact sum of two signed 5-bit products.
 
 Although the external interface is simple, the controller still feeds the internal array using the correct skewed systolic schedule. That keeps the core architecture aligned with the larger `../sa` project while making this Tiny Tapeout design much smaller.
 
@@ -20,11 +20,11 @@ Although the external interface is simple, the controller still feeds the intern
 
 | Pin | Direction | Meaning |
 | --- | --- | --- |
-| `ui_in[7:0]` | input | command payload; low 8 bits of a write value, or an op/immediate field |
+| `ui_in[7:0]` | input | command payload; write data, read-chunk select, or an op/immediate field |
 | `uio_in[0]` | input | `cmd_stb`, pulse high for one cycle to issue a command |
 | `uio_in[2:1]` | input | `cmd` |
 | `uio_in[4:3]` | input | row-major element address |
-| `uio_in[6]` | input | high bit of a signed 9-bit write value for `A` or `B` |
+| `uio_in[6]` | input | auxiliary write bit; unused in the default 5-bit operand mode |
 | `uio_in[7]` | input | ignored; this pin is driven as an output |
 | `uio_in[5]` | input | ignored; this pin is driven as an output |
 
@@ -32,10 +32,10 @@ Although the external interface is simple, the controller still feeds the intern
 
 | `cmd` | Operation |
 | --- | --- |
-| `2'b00` | write `A[addr] <= {uio_in[6], ui_in[7:0]}` |
-| `2'b01` | write `B[addr] <= {uio_in[6], ui_in[7:0]}` |
+| `2'b00` | write `A[addr] <= ui_in[4:0]` |
+| `2'b01` | write `B[addr] <= ui_in[4:0]` |
 | `2'b10` | execute an operation encoded in `ui_in` |
-| `2'b11` | select which bank and address appear on the output bus |
+| `2'b11` | select which bank, address, and read chunk appear on the output bus |
 
 ### Address map
 
@@ -48,13 +48,19 @@ Although the external interface is simple, the controller still feeds the intern
 
 ### Read bank select
 
-For `cmd=2'b11`, the read bank select is carried in `ui_in[1:0]`:
+For `cmd=2'b11`, the read bank select is carried in `ui_in[1:0]` and the chunk index is carried in `ui_in[7:2]`:
 
 | `ui_in[1:0]` | Read bank |
 | --- | --- |
 | `0` | `A` |
 | `1` | `B` |
 | `2` | `C` |
+
+Chunk behavior:
+
+- `A` and `B` only need chunk `0`.
+- `C` chunk `0` returns bits `[8:0]`.
+- `C` chunk `1` returns bits `[10:9]` in the low bits of the 9-bit read bus.
 
 ### Execute payload format
 
@@ -80,14 +86,14 @@ Supported ops:
 
 | Pin | Direction | Meaning |
 | --- | --- | --- |
-| `uo_out[7:0]` | output | low 8 bits of the selected signed readback word |
-| `uio_out[7]` | output | high bit of the selected signed readback word |
+| `uo_out[7:0]` | output | low 8 bits of the selected signed readback chunk |
+| `uio_out[7]` | output | high bit of the selected signed readback chunk |
 | `uio_out[6]` | output | zero |
 | `uio_out[5]` | output | `busy` |
 | `uio_out[4:0]` | output | zero |
 | `uio_oe[7:0]` | output-enable | `8'b1010_0000` |
 
-Interpret the result as `{uio_out[7], uo_out[7:0]}`.
+Interpret each returned chunk as `{uio_out[7], uo_out[7:0]}` and reconstruct 11-bit `C` values from two chunks.
 
 ## Timing for one matmul
 
@@ -132,7 +138,7 @@ C = A x B = [[ 3, -2],
              [ 7,  4]]
 ```
 
-The returned 9-bit values are:
+The returned values are:
 
 - `addr=0`: `3`
 - `addr=1`: `-2`

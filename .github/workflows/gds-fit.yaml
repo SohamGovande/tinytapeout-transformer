@@ -6,7 +6,7 @@ on:
       data_w:
         description: Operand width to harden
         required: true
-        default: "4"
+        default: "5"
 
 jobs:
   gds_fit:

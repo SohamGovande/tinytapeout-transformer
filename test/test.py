@@ -21,7 +21,7 @@ OP_EW_RELU = 0b011
 OP_EW_SHIFT = 0b100
 
 IO_W = 9
-DATA_W = int(os.environ.get("SA2X2_DATA_W", "4"))
+DATA_W = int(os.environ.get("SA2X2_DATA_W", "5"))
 ACC_W = int(os.environ.get("SA2X2_ACC_W", str((2 * DATA_W) + 1)))
 
 

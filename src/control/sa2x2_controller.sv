@@ -2,7 +2,7 @@
 `timescale 1ns / 1ps
 
 module sa2x2_controller #(
-    parameter int DATA_W = 4,
+    parameter int DATA_W = 5,
     parameter int ACC_W = (2 * DATA_W) + 1
 ) (
     input  logic        clk,

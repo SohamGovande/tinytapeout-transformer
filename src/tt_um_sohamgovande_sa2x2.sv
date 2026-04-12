@@ -6,7 +6,7 @@
 `default_nettype none
 
 `ifndef SA2X2_DATA_W
-`define SA2X2_DATA_W 4
+`define SA2X2_DATA_W 5
 `endif
 
 module tt_um_sohamgovande_sa2x2 (

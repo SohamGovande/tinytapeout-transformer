@@ -2,8 +2,8 @@
 `timescale 1ns / 1ps
 
 module systolic_array_2x2 #(
-    parameter int DATA_W = 4,
-    parameter int ACC_W = 9
+    parameter int DATA_W = 5,
+    parameter int ACC_W = 11
 ) (
     input  logic                     clk,
     input  logic                     rst_n,
