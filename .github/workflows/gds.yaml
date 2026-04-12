@@ -38,8 +38,10 @@ jobs:
         uses: TinyTapeout/tt-gds-action/gl_test@ttsky26a
 
   viewer:
+    if: github.event_name == 'workflow_dispatch'
     needs: gds
     runs-on: ubuntu-24.04
+    continue-on-error: true
     environment:
       name: github-pages
     permissions:
