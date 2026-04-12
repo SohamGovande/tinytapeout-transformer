@@ -11,7 +11,7 @@ TOPLEVEL_LANG ?= verilog
 FST ?= -fst
 
 SRC_DIR = ../src
-PROJECT_SOURCES = tt_um_sohamgovande_sa2x2.sv control/sa2x2_controller.sv core/pe_mac.sv core/systolic_array_2x2.sv
+PROJECT_SOURCES = tt_um_sohamgovande_transformer.sv control/sa2x2_controller.sv core/pe_mac.sv core/systolic_array_2x2.sv
 
 ifneq ($(GATES),yes)
 

@@ -2,9 +2,9 @@ read_verilog -sv \
     src/core/pe_mac.sv \
     src/core/systolic_array_2x2.sv \
     src/control/sa2x2_controller.sv \
-    src/tt_um_sohamgovande_sa2x2.sv
+    src/tt_um_sohamgovande_transformer.sv
 
-hierarchy -top tt_um_sohamgovande_sa2x2
+hierarchy -top tt_um_sohamgovande_transformer
 proc
 opt
 fsm

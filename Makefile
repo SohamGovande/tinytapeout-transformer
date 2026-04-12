@@ -1,6 +1,6 @@
 .PHONY: test test-gl lint synth tt-config harden warnings png clean
 
-TOP_MODULE := tt_um_sohamgovande_sa2x2
+TOP_MODULE := tt_um_sohamgovande_transformer
 SRC_FILES := $(shell find src -name '*.sv' | sort)
 TT_TOOL := ./tt/tt_tool.py
 SYNTH_SCRIPT := scripts/synth.ys

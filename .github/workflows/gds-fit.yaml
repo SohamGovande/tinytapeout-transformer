@@ -22,8 +22,8 @@ jobs:
         env:
           DATA_W: ${{ inputs.data_w }}
         run: |
-          perl -0pi -e 's/`define SA2X2_DATA_W \d+/`define SA2X2_DATA_W '"$DATA_W"'/' src/tt_um_sohamgovande_sa2x2.sv
-          grep -n "SA2X2_DATA_W" src/tt_um_sohamgovande_sa2x2.sv
+          perl -0pi -e 's/`define SA2X2_DATA_W \d+/`define SA2X2_DATA_W '"$DATA_W"'/' src/tt_um_sohamgovande_transformer.sv
+          grep -n "SA2X2_DATA_W" src/tt_um_sohamgovande_transformer.sv
 
       - name: Build GDS
         uses: TinyTapeout/tt-gds-action@ttsky26a

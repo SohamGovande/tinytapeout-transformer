@@ -7,9 +7,9 @@ project:
   language:     "SystemVerilog"
   clock_hz:     10000000
   tiles:        "1x2"
-  top_module:   "tt_um_sohamgovande_sa2x2"
+  top_module:   "tt_um_sohamgovande_transformer"
   source_files:
-    - "tt_um_sohamgovande_sa2x2.sv"
+    - "tt_um_sohamgovande_transformer.sv"
     - "control/sa2x2_controller.sv"
     - "core/pe_mac.sv"
     - "core/systolic_array_2x2.sv"
