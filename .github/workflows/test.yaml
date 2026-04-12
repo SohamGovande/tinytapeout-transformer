@@ -2,6 +2,9 @@ name: test
 
 on: [push, workflow_dispatch]
 
+env:
+  DATA_W: 4
+
 jobs:
   test:
     runs-on: ubuntu-24.04
@@ -28,21 +31,21 @@ jobs:
         run: |
           cd test
           make clean
-          make
-          ! grep failure results.xml
+          make DATA_W=${DATA_W}
+          ! grep failure results_rtl_w${DATA_W}.xml
 
       - name: Test Summary
         uses: test-summary/action@v2.4
         with:
-          paths: "test/results.xml"
+          paths: "test/results_rtl_w${{ env.DATA_W }}.xml"
         if: always()
 
       - name: upload waveform and test results
         if: success() || failure()
         uses: actions/upload-artifact@v7
         with:
-          name: test-results
+          name: test-results-w${{ env.DATA_W }}
           path: |
             test/tb.fst
-            test/results.xml
+            test/results_rtl_w${{ env.DATA_W }}.xml
             test/output/*

@@ -42,4 +42,4 @@ png:
 	python3 $(TT_TOOL) --create-png
 
 clean:
-	rm -rf build test/sim_build test/results.xml test/tb.fst test/tb.vcd test/output test/__pycache__ test/.pytest_cache test/gate_level_netlist.v
+	rm -rf build test/sim_build test/results*.xml test/tb.fst test/tb.vcd test/output test/__pycache__ test/.pytest_cache test/gate_level_netlist.v

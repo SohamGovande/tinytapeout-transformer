@@ -1,3 +1,5 @@
+import os
+
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles, FallingEdge, ReadOnly, RisingEdge
@@ -18,6 +20,10 @@ OP_EW_ADD = 0b010
 OP_EW_RELU = 0b011
 OP_EW_SHIFT = 0b100
 
+IO_W = 9
+DATA_W = int(os.environ.get("SA2X2_DATA_W", "4"))
+ACC_W = int(os.environ.get("SA2X2_ACC_W", str((2 * DATA_W) + 1)))
+
 
 def to_unsigned(value: int, width: int) -> int:
     return value & ((1 << width) - 1)
@@ -29,6 +35,18 @@ def to_signed(value: int, width: int) -> int:
     if value & (1 << (width - 1)):
         value -= 1 << width
     return value
+
+
+def min_signed(width: int) -> int:
+    return -(1 << (width - 1))
+
+
+def max_signed(width: int) -> int:
+    return (1 << (width - 1)) - 1
+
+
+def bank_width(bank: int) -> int:
+    return ACC_W if bank == BANK_C else DATA_W
 
 
 def matrix_product(a, b):
@@ -46,10 +64,10 @@ def get_busy(dut) -> int:
     return (dut.uio_out.value.to_unsigned() >> 5) & 0x1
 
 
-def get_read_data(dut) -> int:
+def get_read_chunk(dut) -> int:
     raw = ((dut.uio_out.value.to_unsigned() >> 7) & 0x1) << 8
     raw |= dut.uo_out.value.to_unsigned()
-    return to_signed(raw, 9)
+    return raw
 
 
 async def setup_dut(dut):
@@ -81,19 +99,30 @@ async def pulse_cmd(dut, cmd: int, addr: int = 0, aux: int = 0, payload: int = 0
 
 
 async def write_bank_entry(dut, bank: int, addr: int, value: int):
+    width = bank_width(bank)
+    encoded = to_unsigned(value, width)
     cmd = CMD_WRITE_B if bank == BANK_B else CMD_WRITE_A
     await pulse_cmd(
         dut,
         cmd,
         addr=addr,
-        aux=(to_unsigned(value, 9) >> 8) & 0x1,
-        payload=value,
+        aux=(encoded >> 8) & 0x1,
+        payload=encoded,
     )
 
 
 async def read_bank_entry(dut, bank: int, addr: int) -> int:
-    await pulse_cmd(dut, CMD_READ, addr=addr, payload=bank)
-    return get_read_data(dut)
+    width = bank_width(bank)
+    raw = 0
+    chunks = (width + IO_W - 1) // IO_W
+
+    for chunk in range(chunks):
+        await pulse_cmd(dut, CMD_READ, addr=addr, payload=bank | (chunk << 2))
+        chunk_raw = get_read_chunk(dut)
+        used_bits = min(IO_W, width - (chunk * IO_W))
+        raw |= (chunk_raw & ((1 << used_bits) - 1)) << (chunk * IO_W)
+
+    return to_signed(raw, width)
 
 
 async def write_matrix(dut, bank: int, matrix):
@@ -137,8 +166,10 @@ async def test_reset_smoke(dut):
 async def test_bank_write_and_readback(dut):
     await setup_dut(dut)
 
-    values_a = [128, -129, 17, -42]
-    values_b = [-1, 64, -128, 255]
+    lo = min_signed(DATA_W)
+    hi = max_signed(DATA_W)
+    values_a = [hi, lo, 1, -2]
+    values_b = [-1, hi - 1, lo + 1, 3]
 
     for addr, value in enumerate(values_a):
         await write_bank_entry(dut, BANK_A, addr, value)
@@ -200,8 +231,8 @@ async def test_matmul_accumulates_into_result_bank(dut):
 async def test_elementwise_add_writes_selected_result_word(dut):
     await setup_dut(dut)
 
-    a = [[10, -12], [33, 4]]
-    b = [[-3, 5], [7, -1]]
+    a = [[2, -3], [max_signed(DATA_W) // 2, 1]]
+    b = [[-1, 4], [-(max_signed(DATA_W) // 3), -2]]
     expected = [[a[row][col] + b[row][col] for col in range(2)] for row in range(2)]
 
     await write_matrix(dut, BANK_A, a)
@@ -218,7 +249,9 @@ async def test_elementwise_add_writes_selected_result_word(dut):
 async def test_relu_and_shift_are_in_place_on_result_bank(dut):
     await setup_dut(dut)
 
-    a = [[-9, 20], [-1, 7]]
+    positive_hi = max_signed(DATA_W)
+    positive_lo = min(positive_hi, 7)
+    a = [[-3, positive_hi], [-1, positive_lo]]
     zeros = [[0, 0], [0, 0]]
 
     await write_matrix(dut, BANK_A, a)
@@ -232,14 +265,14 @@ async def test_relu_and_shift_are_in_place_on_result_bank(dut):
         await exec_op(dut, OP_EW_RELU, addr=addr)
         await wait_while_busy(dut)
 
-    relu_expected = [[0, 20], [0, 7]]
+    relu_expected = [[0, positive_hi], [0, positive_lo]]
     assert await read_matrix(dut, BANK_C) == relu_expected
 
     for addr in range(4):
         await exec_op(dut, OP_EW_SHIFT, addr=addr, shift=1)
         await wait_while_busy(dut)
 
-    shifted_expected = [[0, 10], [0, 3]]
+    shifted_expected = [[0, positive_hi >> 1], [0, positive_lo >> 1]]
     assert await read_matrix(dut, BANK_C) == shifted_expected
 
 
@@ -249,6 +282,7 @@ async def test_busy_ignores_overlapping_commands(dut):
 
     a = [[1, 0], [0, 1]]
     b = [[6, -2], [5, 4]]
+    overwrite_value = min_signed(DATA_W) + 1
 
     await write_matrix(dut, BANK_A, a)
     await write_matrix(dut, BANK_B, b)
@@ -259,7 +293,7 @@ async def test_busy_ignores_overlapping_commands(dut):
     await ReadOnly()
     assert get_busy(dut) == 1
 
-    await write_bank_entry(dut, BANK_A, 0, -99)
+    await write_bank_entry(dut, BANK_A, 0, overwrite_value)
     await pulse_cmd(dut, CMD_READ, addr=3, payload=BANK_B)
     await exec_op(dut, OP_EW_ADD, addr=2)
 

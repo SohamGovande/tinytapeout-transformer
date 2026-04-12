@@ -5,7 +5,10 @@
 
 `default_nettype none
 
-module tt_um_sohamgovande_sa2x2 (
+module tt_um_sohamgovande_sa2x2 #(
+    parameter int DATA_W = 4,
+    parameter int ACC_W = (2 * DATA_W) + 1
+) (
     input  wire [7:0] ui_in,
     output wire [7:0] uo_out,
     input  wire [7:0] uio_in,
@@ -21,15 +24,12 @@ module tt_um_sohamgovande_sa2x2 (
 `endif
 );
 
-    localparam int DATA_W = 4;
-    localparam int WORD_W = 9;
-
-    wire signed [WORD_W-1:0] read_data;
+    wire [8:0] read_data;
     wire busy;
 
     sa2x2_controller #(
         .DATA_W(DATA_W),
-        .WORD_W(WORD_W)
+        .ACC_W (ACC_W)
     ) u_controller (
         .clk     (clk),
         .rst_n   (rst_n),

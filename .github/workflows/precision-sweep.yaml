@@ -1,0 +1,92 @@
+name: precision-sweep
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rtl_test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        data_w: [4, 5, 6, 7, 8, 9]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Install iverilog
+        shell: bash
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install Python packages
+        shell: bash
+        run: pip install -r test/requirements.txt
+
+      - name: Run width sweep tests
+        shell: bash
+        run: |
+          cd test
+          make clean
+          make DATA_W=${{ matrix.data_w }}
+          ! grep failure results_rtl_w${{ matrix.data_w }}.xml
+
+      - name: Test Summary
+        uses: test-summary/action@v2.4
+        if: always()
+        with:
+          paths: "test/results_rtl_w${{ matrix.data_w }}.xml"
+
+      - name: Upload width sweep test artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rtl-test-w${{ matrix.data_w }}
+          path: |
+            test/tb.fst
+            test/results_rtl_w${{ matrix.data_w }}.xml
+            test/output/*
+
+  gds_fit:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        data_w: [4, 5, 6]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set default operand width
+        shell: bash
+        env:
+          DATA_W: ${{ matrix.data_w }}
+        run: |
+          perl -0pi -e "s/parameter int DATA_W = \d+/parameter int DATA_W = $ENV{DATA_W}/" src/tt_um_sohamgovande_sa2x2.sv
+          grep -n "parameter int DATA_W" src/tt_um_sohamgovande_sa2x2.sv
+
+      - name: Build GDS
+        uses: TinyTapeout/tt-gds-action@ttsky26a
+        with:
+          pdk: sky130A
+
+      - name: Upload hardening artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gds-fit-w${{ matrix.data_w }}
+          path: |
+            runs/wokwi/flow.log
+            runs/wokwi/error.log
+            runs/wokwi/warning.log
+            runs/wokwi/results/**
+            runs/wokwi/reports/**
+            runs/wokwi/logs/**
