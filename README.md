@@ -159,12 +159,14 @@ For `cmd=2'b10`:
 
 # Quickstart
 
+Initialize the `tt` submodule first. You will need `uv`, `iverilog`, `verilator`, and `yosys` installed locally. Then run:
+
 ```sh
-git submodule update --init --recursive
-python3 -m pip install -r test/requirements.txt
-make test
-make lint
-make synth
+uv venv
+uv pip install -r test/requirements.txt
+uv run make test
+uv run make lint
+uv run make synth
 ```
 
 *the host has to tile these!

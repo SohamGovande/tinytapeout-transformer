@@ -11,3 +11,10 @@ test/output/
 test/__pycache__/
 test/.pytest_cache/
 test/gate_level_netlist.v
+python/.pytest_cache/
+python/build/
+python/data/
+python/*.pt
+python/*.egg-info/
+python/.venv/
+python/**/__pycache__/
