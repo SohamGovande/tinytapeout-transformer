@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1290" height="332" viewBox="0 0 1290 332" role="img" aria-labelledby="title desc">
+  <title id="title">B operand wavefront through the 2 by 2 array</title>
+  <desc id="desc">Four panels show how b00, b01, b10, and b11 move downward through the array.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#26212e" />
+    </marker>
+    <marker id="arrow-muted" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#655f72" />
+    </marker>
+    <style>
+      text {
+        font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Times New Roman", serif;
+        fill: #26212e;
+      }
+      .title {
+        font-size: 28px;
+        font-weight: 700;
+      }
+      .subtitle {
+        font-size: 18px;
+        font-style: italic;
+        fill: #655f72;
+      }
+      .label {
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .body {
+        font-size: 16px;
+        fill: #655f72;
+      }
+      .token {
+        font-size: 20px;
+        font-weight: 700;
+      }
+      .tiny {
+        font-size: 14px;
+        fill: #655f72;
+      }
+    </style>
+  </defs>
+  <rect width="1290" height="332" fill="#fbfaf7" />
+<text x="40" y="28" text-anchor="start" dominant-baseline="hanging" class="title"><tspan x="40" dy="0">B wavefront</tspan></text>
+<text x="40" y="62" text-anchor="start" dominant-baseline="hanging" class="subtitle"><tspan x="40" dy="0">Columns arrive from the top with the complementary skew, so the right pairs meet in each PE.</tspan></text>
+<rect x="40" y="98" width="274" height="194" rx="18" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.5" />
+<text x="60" y="114" text-anchor="start" dominant-baseline="hanging" class="label"><tspan x="60" dy="0">FEED0</tspan></text>
+<rect x="60" y="138" width="158" height="118" rx="18" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.6" />
+<rect x="72" y="150" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="144" y="150" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="72" y="204" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="144" y="204" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="72" y="150" width="62" height="40" rx="10" fill="#d7d3cb" stroke="#26212e" stroke-width="1.6" />
+<text x="103" y="159" text-anchor="middle" dominant-baseline="hanging" class="token"><tspan x="103" dy="0">b₀₀</tspan></text>
+<rect x="356" y="98" width="274" height="194" rx="18" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.5" />
+<text x="376" y="114" text-anchor="start" dominant-baseline="hanging" class="label"><tspan x="376" dy="0">FEED1</tspan></text>
+<rect x="376" y="138" width="158" height="118" rx="18" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.6" />
+<rect x="388" y="150" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="460" y="150" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="388" y="204" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="460" y="204" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="388" y="150" width="62" height="40" rx="10" fill="#ffd7ca" stroke="#26212e" stroke-width="1.6" />
+<text x="419" y="159" text-anchor="middle" dominant-baseline="hanging" class="token"><tspan x="419" dy="0">b₁₀</tspan></text>
+<rect x="460" y="150" width="62" height="40" rx="10" fill="#d8d5ff" stroke="#26212e" stroke-width="1.6" />
+<text x="491" y="159" text-anchor="middle" dominant-baseline="hanging" class="token"><tspan x="491" dy="0">b₀₁</tspan></text>
+<rect x="388" y="204" width="62" height="40" rx="10" fill="#d7d3cb" stroke="#26212e" stroke-width="1.6" />
+<text x="419" y="213" text-anchor="middle" dominant-baseline="hanging" class="token"><tspan x="419" dy="0">b₀₀</tspan></text>
+<rect x="672" y="98" width="274" height="194" rx="18" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.5" />
+<text x="692" y="114" text-anchor="start" dominant-baseline="hanging" class="label"><tspan x="692" dy="0">FLUSH0</tspan></text>
+<rect x="692" y="138" width="158" height="118" rx="18" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.6" />
+<rect x="704" y="150" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="776" y="150" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="704" y="204" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="776" y="204" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="776" y="150" width="62" height="40" rx="10" fill="#fff0bc" stroke="#26212e" stroke-width="1.6" />
+<text x="807" y="159" text-anchor="middle" dominant-baseline="hanging" class="token"><tspan x="807" dy="0">b₁₁</tspan></text>
+<rect x="704" y="204" width="62" height="40" rx="10" fill="#ffd7ca" stroke="#26212e" stroke-width="1.6" />
+<text x="735" y="213" text-anchor="middle" dominant-baseline="hanging" class="token"><tspan x="735" dy="0">b₁₀</tspan></text>
+<rect x="776" y="204" width="62" height="40" rx="10" fill="#d8d5ff" stroke="#26212e" stroke-width="1.6" />
+<text x="807" y="213" text-anchor="middle" dominant-baseline="hanging" class="token"><tspan x="807" dy="0">b₀₁</tspan></text>
+<rect x="988" y="98" width="274" height="194" rx="18" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.5" />
+<text x="1008" y="114" text-anchor="start" dominant-baseline="hanging" class="label"><tspan x="1008" dy="0">FLUSH1</tspan></text>
+<rect x="1008" y="138" width="158" height="118" rx="18" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.6" />
+<rect x="1020" y="150" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="1092" y="150" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="1020" y="204" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="1092" y="204" width="62" height="40" rx="10" fill="#fffdfa" stroke="#bdb5c8" stroke-width="1.2" />
+<rect x="1092" y="204" width="62" height="40" rx="10" fill="#fff0bc" stroke="#26212e" stroke-width="1.6" />
+<text x="1123" y="213" text-anchor="middle" dominant-baseline="hanging" class="token"><tspan x="1123" dy="0">b₁₁</tspan></text>
+<line x1="314" y1="195" x2="356" y2="195" stroke="#cc8b73" stroke-width="3.2" stroke-linecap="round" marker-end="url(#arrow)" />
+<line x1="630" y1="195" x2="672" y2="195" stroke="#cc8b73" stroke-width="3.2" stroke-linecap="round" marker-end="url(#arrow)" />
+<line x1="946" y1="195" x2="988" y2="195" stroke="#cc8b73" stroke-width="3.2" stroke-linecap="round" marker-end="url(#arrow)" />
+</svg>

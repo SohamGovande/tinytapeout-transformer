@@ -1,82 +1,193 @@
 # Tiny Tapeout 2x2 Systolic Primitive Engine
 
-This repository is a Tiny Tapeout native scaffold for a very small signed 2x2 systolic-array primitive engine. It keeps the clean separation between compute RTL and verification that worked well in `../sa`, but strips away the scheduler, memory, harness, and larger multi-op infrastructure. The chip exposes two host-written source banks plus a dedicated result bank so software can stitch together tiny matmul and elementwise kernels.
+This chip is a tiny host-driven math primitive: two 2x2 source banks feed a signed 2x2 systolic array, and the 2x2 result bank can also do accumulate, elementwise add, ReLU, and arithmetic right shift.
 
-## Repo layout
+The broader goal is to use this kind of primitive as a building block for a very, very simple transformer-style workload assembled from tiled matrix multiplies in quantized integer format. In that setting, the intended attention path is integer attention,
 
-- `src/core/` contains the reusable processing element and fixed 2x2 array.
-- `src/control/` contains the small controller that stores the `A`, `B`, and `C` banks, runs the array, and exposes the read mux.
-- `src/tt_um_sohamgovande_sa2x2.sv` is the Tiny Tapeout top module.
-- `test/` contains the cocotb testbench.
-- `docs/info.md` documents the pin protocol and example usage.
+`ReLU(QKᵀ)V`
 
-## Quickstart
+instead of the usual
 
-Install the Python test dependencies:
+`softmax(QKᵀ)V`
 
-```sh
-python3 -m pip install -r test/requirements.txt
-```
+because a Tiny Tapeout chip does not have enough gates for practical floating-point numerics on-chip.
 
-Run the RTL testbench:
+## At a glance
 
-```sh
-make test
-```
+| Block | Shape / width | What it does |
+| --- | --- | --- |
+| Tiny Tapeout macro | `1x2` tiles, `161.00 x 225.76 um` | Physical footprint on the shuttle |
+| `A` bank | `2x2`, signed `9b` words | Host-written source matrix |
+| `B` bank | `2x2`, signed `9b` words | Host-written source matrix |
+| `C` bank | `2x2`, signed `9b` words | Result bank and accumulation target |
+| Systolic core | `2x2` MAC PEs | Computes one 2x2 matrix product |
+| Matmul operands | signed `4b` | The array only consumes `A[3:0]` and `B[3:0]` |
+| Matmul result | signed `9b` | Exact sum of two signed `4b x 4b` products |
+| Local synth snapshot | about `2388` generic cells | From `build/synth.log` with the current Yosys sanity flow |
 
-Run lint:
+## Systolic array
 
-```sh
-make lint
-```
+A 2×2 systolic array is the heart of the chip. Each PE owns one output entry, accumulates a 2-term dot product, forwards `A` horizontally, and forwards `B` vertically.
 
-Run the local Yosys synthesis sanity check:
+### A operands
 
-```sh
-make synth
-```
+![A operand wavefront](docs/readme-assets/systolic-a-wavefront.svg)
 
-## Protocol overview
+### B operands
 
-The chip stores three signed 2x2 banks:
+![B operand wavefront](docs/readme-assets/systolic-b-wavefront.svg)
 
-- `A[2][2]`: host-written source bank
-- `B[2][2]`: host-written source bank
-- `C[2][2]`: result and accumulation bank
+### Output ownership
 
-All three banks are stored as signed 9-bit words. The systolic-array matmul path only consumes the low 4 bits of `A` and `B`, which keeps the internal core small. The host is responsible for requantizing values before reusing them as matrix-multiply operands.
+![Output formulas per PE](docs/readme-assets/systolic-output-formulas.svg)
 
-The command interface supports:
+## Shapes and sizes
 
-- writing any `A` or `B` entry as a signed 9-bit value
-- reading any `A`, `B`, or `C` entry
-- `C = A x B`
-- `C += A x B`
-- `C[addr] = A[addr] + B[addr]`
-- `C[addr] = relu(C[addr])`
-- `C[addr] = C[addr] >>> shift`
+The design has two different scales:
 
-Add and accumulate currently wrap in signed 9-bit arithmetic. Shift is arithmetic right shift on `C`.
+- The physical macro is a narrow `1x2` Tiny Tapeout slot with a Sky130 footprint of `161.00 x 225.76 um`.
+- The logical datapath is three 2x2 banks wrapped around the 2x2 PE array.
+- Host-visible storage is always signed `9b`, even though the systolic matmul path only uses the low `4b` slice of `A` and `B`.
 
-## Synthesis note
+## Datapath
 
-`make synth` runs a generic Yosys flow and writes `build/synth.log`. On this machine, the current primitive-engine version synthesizes to roughly `2.4k` generic logic cells. That is directionally useful, but it is not a substitute for the real Tiny Tapeout Sky130 hardening flow.
+The controller owns all state. It stores the three banks, decodes commands, generates the skewed systolic feed schedule, and multiplexes readback onto the output pins.
 
-## Tiny Tapeout flow
+- `A[2][2]` and `B[2][2]` are the source banks.
+- `C[2][2]` is the result bank.
+- The systolic array has four identical MAC PEs.
+- `OP_MATMUL` overwrites `C`.
+- `OP_MATMUL_ACC` adds the new matrix product into the existing `C`.
+- Elementwise ops only touch one `C[addr]` entry at a time.
 
-The root `Makefile` provides convenience targets for local testing and for Tiny Tapeout hardening tools:
+## Matrix multiply inputs and outputs
 
-- `make test`
-- `make test-gl`
-- `make lint`
-- `make synth`
-- `make tt-config`
-- `make harden`
-- `make warnings`
-- `make png`
+The array computes:
 
-The Tiny Tapeout hardening targets expect the `tt-support-tools` repository to be present as the `tt/` submodule:
+| Output | Formula |
+| --- | --- |
+| `C[0] = c00` | `a00*b00 + a01*b10` |
+| `C[1] = c01` | `a00*b01 + a01*b11` |
+| `C[2] = c10` | `a10*b00 + a11*b10` |
+| `C[3] = c11` | `a10*b01 + a11*b11` |
+
+The row-major address map is fixed everywhere in the design:
+
+| `addr` | Matrix entry |
+| --- | --- |
+| `0` | `[0][0]` |
+| `1` | `[0][1]` |
+| `2` | `[1][0]` |
+| `3` | `[1][1]` |
+
+Because the array only sees `A[3:0]` and `B[3:0]`, matrix-multiply operands should be requantized into the signed `-8..7` range before launch.
+
+## Supported operations
+
+| Execute op | Effect on `C` | Scope |
+| --- | --- | --- |
+| `OP_MATMUL` | `C = A x B` | whole 2x2 bank |
+| `OP_MATMUL_ACC` | `C = C + (A x B)` | whole 2x2 bank |
+| `OP_EW_ADD` | `C[addr] = A[addr] + B[addr]` | one word |
+| `OP_EW_RELU` | `C[addr] = max(C[addr], 0)` | one word |
+| `OP_EW_SHIFT` | `C[addr] = C[addr] >>> shift` | one word |
+
+Notes:
+
+- Add and accumulate wrap in signed `9b` arithmetic.
+- Shift is arithmetic right shift.
+- Commands issued while `busy=1` are ignored.
+
+## Controller state machines
+
+The host-visible behavior is simple:
+
+- `IDLE` is the only state that accepts a command.
+- Write and read commands are handled directly in `IDLE`.
+- Elementwise execute commands go through a one-cycle `EXEC` state.
+- Matmul commands walk the full systolic schedule before returning to `IDLE`.
+
+## Matmul schedule
+
+One matmul launch always uses the same internal sequence:
+
+| State | Role |
+| --- | --- |
+| `CLEAR` | clear all PE accumulators |
+| `FEED0` | inject the first skewed wavefront |
+| `FEED1` | inject the second skewed wavefront |
+| `FLUSH0` | inject the final nonzero values for the bottom-right PE |
+| `FLUSH1` | drive zeros and drain the pipeline |
+| `LATCH` | capture `array_c00..array_c11` into `C` |
+
+That fixed schedule is why the external interface can stay tiny while the internal math still behaves like a real systolic array.
+
+## External command interface
+
+### Input pins
+
+| Pin | Meaning |
+| --- | --- |
+| `ui_in[7:0]` | command payload |
+| `uio_in[0]` | `cmd_stb`, pulse high for one cycle |
+| `uio_in[2:1]` | `cmd` |
+| `uio_in[4:3]` | `addr` |
+| `uio_in[6]` | high bit of a signed `9b` write value |
+
+### Output pins
+
+| Pin | Meaning |
+| --- | --- |
+| `uo_out[7:0]` | low `8b` of the selected readback word |
+| `uio_out[7]` | high bit of the selected readback word |
+| `uio_out[5]` | `busy` |
+
+Interpret readback as `{uio_out[7], uo_out[7:0]}`.
+
+### Command encoding
+
+| `cmd` | Meaning |
+| --- | --- |
+| `2'b00` | write `A[addr] <= {uio_in[6], ui_in[7:0]}` |
+| `2'b01` | write `B[addr] <= {uio_in[6], ui_in[7:0]}` |
+| `2'b10` | execute operation encoded in `ui_in` |
+| `2'b11` | select which bank and address appear on the output bus |
+
+### Read bank select
+
+For `cmd=2'b11`, `ui_in[1:0]` selects the source:
+
+| `ui_in[1:0]` | Read bank |
+| --- | --- |
+| `0` | `A` |
+| `1` | `B` |
+| `2` | `C` |
+
+### Execute payload
+
+For `cmd=2'b10`:
+
+| Bits | Meaning |
+| --- | --- |
+| `ui_in[2:0]` | operation |
+| `ui_in[3]` | reserved |
+| `ui_in[7:4]` | shift amount for `OP_EW_SHIFT` |
+
+## Layout and published artifacts
+
+The repository already has the Tiny Tapeout publishing hooks in place:
+
+- [GitHub Pages](https://sohamgovande.github.io/tt-transformer/) publishes the rendered project docs.
+- [`.github/workflows/gds.yaml`](https://github.com/SohamGovande/tt-transformer/blob/master/.github/workflows/gds.yaml) includes a `viewer` job intended to publish the hardened layout viewer once the GDS flow succeeds.
+
+Right now the public Pages site is the rendered README, so this document uses logical diagrams instead of a real GDS screenshot. Once a hardened layout is available, the same flow can publish a viewer page and `make png` can export a static layout image for this section.
+
+# Quickstart
 
 ```sh
 git submodule update --init --recursive
+python3 -m pip install -r test/requirements.txt
+make test
+make lint
+make synth
 ```

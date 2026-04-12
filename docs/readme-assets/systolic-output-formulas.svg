@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="420" viewBox="0 0 980 420" role="img" aria-labelledby="title desc">
+  <title id="title">Output formulas for each processing element</title>
+  <desc id="desc">A 2 by 2 arrangement of output cells showing the dot product formula computed by each processing element.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#26212e" />
+    </marker>
+    <marker id="arrow-muted" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#655f72" />
+    </marker>
+    <style>
+      text {
+        font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Times New Roman", serif;
+        fill: #26212e;
+      }
+      .title {
+        font-size: 28px;
+        font-weight: 700;
+      }
+      .subtitle {
+        font-size: 18px;
+        font-style: italic;
+        fill: #655f72;
+      }
+      .label {
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .body {
+        font-size: 16px;
+        fill: #655f72;
+      }
+      .token {
+        font-size: 20px;
+        font-weight: 700;
+      }
+      .tiny {
+        font-size: 14px;
+        fill: #655f72;
+      }
+    </style>
+  </defs>
+  <rect width="980" height="420" fill="#fbfaf7" />
+<text x="54" y="32" text-anchor="start" dominant-baseline="hanging" class="title"><tspan x="54" dy="0">Dot products per PE</tspan></text>
+<text x="54" y="66" text-anchor="start" dominant-baseline="hanging" class="subtitle"><tspan x="54" dy="0">Each processing element owns exactly one output entry of C.</tspan></text>
+<rect x="96" y="116" width="350" height="106" rx="16" fill="#d7d3cb" stroke="#26212e" stroke-width="1.8" />
+<text x="271.0" y="134" text-anchor="middle" dominant-baseline="hanging" class="label"><tspan x="271.0" dy="0">c₀₀</tspan></text>
+<text x="271.0" y="164" text-anchor="middle" dominant-baseline="hanging" class="subtitle"><tspan x="271.0" dy="0">MAC</tspan></text>
+<text x="271.0" y="198" text-anchor="middle" dominant-baseline="hanging" class="tiny"><tspan x="271.0" dy="0">a₀₀·b₀₀ + a₀₁·b₁₀</tspan></text>
+<rect x="524" y="116" width="350" height="106" rx="16" fill="#d8d5ff" stroke="#26212e" stroke-width="1.8" />
+<text x="699.0" y="134" text-anchor="middle" dominant-baseline="hanging" class="label"><tspan x="699.0" dy="0">c₀₁</tspan></text>
+<text x="699.0" y="164" text-anchor="middle" dominant-baseline="hanging" class="subtitle"><tspan x="699.0" dy="0">MAC</tspan></text>
+<text x="699.0" y="198" text-anchor="middle" dominant-baseline="hanging" class="tiny"><tspan x="699.0" dy="0">a₀₀·b₀₁ + a₀₁·b₁₁</tspan></text>
+<rect x="96" y="252" width="350" height="106" rx="16" fill="#ffd7ca" stroke="#26212e" stroke-width="1.8" />
+<text x="271.0" y="270" text-anchor="middle" dominant-baseline="hanging" class="label"><tspan x="271.0" dy="0">c₁₀</tspan></text>
+<text x="271.0" y="300" text-anchor="middle" dominant-baseline="hanging" class="subtitle"><tspan x="271.0" dy="0">MAC</tspan></text>
+<text x="271.0" y="334" text-anchor="middle" dominant-baseline="hanging" class="tiny"><tspan x="271.0" dy="0">a₁₀·b₀₀ + a₁₁·b₁₀</tspan></text>
+<rect x="524" y="252" width="350" height="106" rx="16" fill="#fff0bc" stroke="#26212e" stroke-width="1.8" />
+<text x="699.0" y="270" text-anchor="middle" dominant-baseline="hanging" class="label"><tspan x="699.0" dy="0">c₁₁</tspan></text>
+<text x="699.0" y="300" text-anchor="middle" dominant-baseline="hanging" class="subtitle"><tspan x="699.0" dy="0">MAC</tspan></text>
+<text x="699.0" y="334" text-anchor="middle" dominant-baseline="hanging" class="tiny"><tspan x="699.0" dy="0">a₁₀·b₀₁ + a₁₁·b₁₁</tspan></text>
+</svg>
