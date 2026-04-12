@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import random
 from pathlib import Path
 
@@ -10,7 +11,8 @@ from .quantize import main as quantize_main
 from .int5_model import generate_int5, load_int5_model
 from .model import TinyCharLm, count_model_weights, decode_token_ids, encode_text, generate_float, load_model_config
 
-DEFAULT_MODEL_YAML = "model.yaml"
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_MODEL_YAML = str(PACKAGE_ROOT / "model.yaml")
 DEFAULT_CHECKPOINT = "model.pt"
 DEFAULT_INT5_CHECKPOINT = "model_int5.pt"
 
@@ -20,7 +22,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--model-yaml", default=DEFAULT_MODEL_YAML)
     parser.add_argument("--ckpt", default=DEFAULT_CHECKPOINT)
     parser.add_argument("--int5-ckpt", default=DEFAULT_INT5_CHECKPOINT)
-    parser.add_argument("--backend", choices=("float", "int5_ref", "chip_sim"), default="float")
+    parser.add_argument("--backend", choices=("float", "int5_ref", "chip_sim", "pcb"), default="float")
     parser.add_argument("--prompt", default="i")
     parser.add_argument("--max-new-tokens", type=int, default=8)
     parser.add_argument("--seed", type=int, default=0)
@@ -28,6 +30,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--top-k", type=int)
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--activation-frac-bits", type=int, default=2)
+    parser.add_argument("--pcb-port", default=os.getenv("TTT_PCB_PORT"))
+    parser.add_argument("--pcb-project", default=os.getenv("TTT_PCB_PROJECT", "tt_um_sohamgovande_transformer"))
+    parser.add_argument("--pcb-baudrate", type=int, default=int(os.getenv("TTT_PCB_BAUDRATE", "115200")))
+    parser.add_argument("--pcb-timeout", type=float, default=float(os.getenv("TTT_PCB_TIMEOUT", "1.0")))
     return parser.parse_args(argv)
 
 
@@ -77,7 +83,15 @@ def main(argv: list[str] | None = None) -> str:
         )
     else:
         int5_ckpt = _ensure_int5_checkpoint(args)
-        int_model = load_int5_model(int5_ckpt, backend=args.backend)
+        backend_options: dict[str, object] | None = None
+        if args.backend == "pcb":
+            backend_options = {
+                "port": args.pcb_port,
+                "project": args.pcb_project,
+                "baudrate": args.pcb_baudrate,
+                "timeout_s": args.pcb_timeout,
+            }
+        int_model = load_int5_model(int5_ckpt, backend=args.backend, backend_options=backend_options)
         try:
             generated_ids = generate_int5(
                 model=int_model,

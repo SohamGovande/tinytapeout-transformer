@@ -162,12 +162,23 @@ For `cmd=2'b10`:
 Initialize the `tt` submodule first. You will need `uv`, `iverilog`, `verilator`, and `yosys` installed locally. Then run:
 
 ```sh
-uv venv
-uv pip install -r test/requirements.txt
+uv sync
 uv run make test
 uv run make lint
 uv run make synth
 ```
+
+The Python training and inference tools now use this same root environment:
+
+```sh
+uv run python -m ttt.train --steps 200
+uv run python -m ttt.quantize
+uv run python -m ttt.sample --backend int5_ref
+uv run python -m ttt.sample --backend chip_sim
+uv run python -m ttt.sample --backend pcb --pcb-port /dev/cu.usbmodemXXXX
+```
+
+More detail lives in `python/README.md`.
 
 *the host has to tile these!
 **floating point numerics take up a lot of gates, so we do `ReLU(QKᵀ)V` for attention instead of the instead of the usual `softmax(QKᵀ)V`

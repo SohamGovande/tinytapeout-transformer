@@ -1,4 +1,7 @@
 .DS_Store
+.venv/
+.pytest_cache/
+*.egg-info/
 build/
 runs/
 src/user_config.json
@@ -15,6 +18,5 @@ python/.pytest_cache/
 python/build/
 python/data/
 python/*.pt
-python/*.egg-info/
 python/.venv/
 python/**/__pycache__/

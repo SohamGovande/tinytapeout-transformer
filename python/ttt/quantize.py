@@ -8,12 +8,17 @@ import torch
 from .model import TinyCharLm, load_model_config
 from .quantization import save_quantized_checkpoint
 
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_MODEL_YAML = str(PACKAGE_ROOT / "model.yaml")
+DEFAULT_CHECKPOINT = "model.pt"
+DEFAULT_INT5_CHECKPOINT = "model_int5.pt"
+
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(allow_abbrev=False)
-    parser.add_argument("--model-yaml", default="model.yaml")
-    parser.add_argument("--ckpt", default="model.pt")
-    parser.add_argument("--out", default="model_int5.pt")
+    parser.add_argument("--model-yaml", default=DEFAULT_MODEL_YAML)
+    parser.add_argument("--ckpt", default=DEFAULT_CHECKPOINT)
+    parser.add_argument("--out", default=DEFAULT_INT5_CHECKPOINT)
     parser.add_argument("--activation-frac-bits", type=int, default=2)
     parser.add_argument("--max-weight-frac-bits", type=int, default=12)
     return parser.parse_args(argv)

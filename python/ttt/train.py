@@ -10,7 +10,8 @@ import torch
 from .download_data import DATA_PATH, ensure_dataset
 from .model import ModelConfig, STOI, TinyCharLm, count_model_weights, load_model_config, normalize_text
 
-DEFAULT_MODEL_YAML = "model.yaml"
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_MODEL_YAML = str(PACKAGE_ROOT / "model.yaml")
 DEFAULT_CHECKPOINT = "model.pt"
 
 

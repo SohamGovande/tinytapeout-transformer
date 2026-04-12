@@ -5,6 +5,7 @@ DATA_W ?= 5
 ACC_W ?= $(shell expr $(DATA_W) \* 2 + 1)
 export SA2X2_DATA_W := $(DATA_W)
 export SA2X2_ACC_W := $(ACC_W)
+PYTHON ?= python
 
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
@@ -46,4 +47,4 @@ TOPLEVEL = tb
 COCOTB_TEST_MODULES = test
 COCOTB_RESULTS_FILE ?= results.xml
 
-include $(shell python3 -m cocotb_tools.config --makefiles)/Makefile.sim
+include $(shell $(PYTHON) -m cocotb_tools.config --makefiles)/Makefile.sim

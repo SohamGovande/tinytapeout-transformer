@@ -290,23 +290,40 @@ class Int5TiledRuntime:
             raise ValueError("matmul inner dimensions must match")
 
         out = torch.zeros((lhs_i.shape[0], rhs_i.shape[1]), dtype=torch.int32)
+        fast_matmul = getattr(self.device, "matmul_accumulated_tiles", None)
 
         for row0 in range(0, lhs_i.shape[0], 2):
             for col0 in range(0, rhs_i.shape[1], 2):
-                first_k_tile = True
-                for k0 in range(0, lhs_i.shape[1], 2):
-                    self._write_tile(BANK_A, self._extract_tile(lhs_i, row0, k0))
-                    self._write_tile(BANK_B, self._extract_tile(rhs_i, k0, col0))
-                    self.device.exec_matmul(accumulate=not first_k_tile)
-                    first_k_tile = False
+                if callable(fast_matmul):
+                    lhs_tiles = [
+                        self._extract_tile(lhs_i, row0, k0)
+                        for k0 in range(0, lhs_i.shape[1], 2)
+                    ]
+                    rhs_tiles = [
+                        self._extract_tile(rhs_i, k0, col0)
+                        for k0 in range(0, lhs_i.shape[1], 2)
+                    ]
+                    tile = fast_matmul(
+                        lhs_tiles,
+                        rhs_tiles,
+                        post_shift=post_shift,
+                        relu=relu,
+                    )
+                else:
+                    first_k_tile = True
+                    for k0 in range(0, lhs_i.shape[1], 2):
+                        self._write_tile(BANK_A, self._extract_tile(lhs_i, row0, k0))
+                        self._write_tile(BANK_B, self._extract_tile(rhs_i, k0, col0))
+                        self.device.exec_matmul(accumulate=not first_k_tile)
+                        first_k_tile = False
 
-                if relu:
-                    for addr in range(4):
-                        self.device.exec_ew_relu(addr)
-                if post_shift > 0:
-                    self._apply_shift_to_c(post_shift)
+                    if relu:
+                        for addr in range(4):
+                            self.device.exec_ew_relu(addr)
+                    if post_shift > 0:
+                        self._apply_shift_to_c(post_shift)
 
-                tile = self._read_tile(BANK_C)
+                    tile = self._read_tile(BANK_C)
                 self._store_tile(out, row0, col0, tile)
 
         if mask is not None:
@@ -330,19 +347,28 @@ class Int5TiledRuntime:
         lhs_i = lhs.to(torch.int32)
         rhs_i = rhs.to(torch.int32)
         out = torch.zeros_like(lhs_i)
+        fast_add = getattr(self.device, "add_tile", None)
 
         for row0 in range(0, lhs_i.shape[0], 2):
             for col0 in range(0, lhs_i.shape[1], 2):
-                self._write_tile(BANK_A, self._extract_tile(lhs_i, row0, col0))
-                self._write_tile(BANK_B, self._extract_tile(rhs_i, row0, col0))
-                for addr in range(4):
-                    self.device.exec_ew_add(addr)
-                if relu:
+                if callable(fast_add):
+                    tile = fast_add(
+                        self._extract_tile(lhs_i, row0, col0),
+                        self._extract_tile(rhs_i, row0, col0),
+                        post_shift=post_shift,
+                        relu=relu,
+                    )
+                else:
+                    self._write_tile(BANK_A, self._extract_tile(lhs_i, row0, col0))
+                    self._write_tile(BANK_B, self._extract_tile(rhs_i, row0, col0))
                     for addr in range(4):
-                        self.device.exec_ew_relu(addr)
-                if post_shift > 0:
-                    self._apply_shift_to_c(post_shift)
-                tile = self._read_tile(BANK_C)
+                        self.device.exec_ew_add(addr)
+                    if relu:
+                        for addr in range(4):
+                            self.device.exec_ew_relu(addr)
+                    if post_shift > 0:
+                        self._apply_shift_to_c(post_shift)
+                    tile = self._read_tile(BANK_C)
                 self._store_tile(out, row0, col0, tile)
 
         if clamp_output_to_int5:

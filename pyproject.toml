@@ -2,10 +2,12 @@
 name = "ttt"
 version = "0.1.0"
 description = "TinyTapeout int5 training and inference tools"
-readme = "README.md"
+readme = "python/README.md"
 requires-python = ">=3.9"
 dependencies = [
+    "cocotb==2.0.1",
     "numpy>=2.0.0",
+    "pyserial>=3.5",
     "pytest>=8.0.0",
     "pyyaml>=6.0.0",
     "torch>=2.4.0",
@@ -15,8 +17,13 @@ dependencies = [
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+package-dir = {"" = "python"}
+
 [tool.setuptools.packages.find]
+where = ["python"]
 include = ["ttt*"]
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = ["python"]
+testpaths = ["python/tests"]

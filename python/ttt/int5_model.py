@@ -128,12 +128,17 @@ class Int5CharLm:
 def load_int5_model(
     checkpoint_path: str | Path,
     backend: str = "int5_ref",
+    backend_options: dict[str, object] | None = None,
 ) -> Int5CharLm:
     checkpoint = load_quantized_checkpoint(checkpoint_path)
     if backend == "int5_ref":
         runtime = Int5TiledRuntime(ReferenceSa2x2Device())
     elif backend == "chip_sim":
         runtime = Int5TiledRuntime(VerilatedSa2x2Device())
+    elif backend == "pcb":
+        from .pcb import PcbSa2x2Device
+
+        runtime = Int5TiledRuntime(PcbSa2x2Device(**(backend_options or {})))
     else:
         raise ValueError(f"unsupported int5 backend: {backend}")
     return Int5CharLm(checkpoint=checkpoint, runtime=runtime)
