@@ -71,3 +71,5 @@ export TTT_PCB_TIMEOUT=1.0
 ```
 
 The PCB path is designed for correctness first. It uses a tile-level RPC so it is much less chatty than per-register REPL calls, but it will still be much slower than `chip_sim`.
+
+The raw REPL upload pacing defaults to `1 ms` per 96-byte chunk. Use `--pcb-write-chunk-delay` to increase it if your board or serial adapter is flaky, or to experiment with smaller values on a stable setup.

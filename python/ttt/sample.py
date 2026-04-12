@@ -34,6 +34,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--pcb-project", default=os.getenv("TTT_PCB_PROJECT", "tt_um_sohamgovande_transformer"))
     parser.add_argument("--pcb-baudrate", type=int, default=int(os.getenv("TTT_PCB_BAUDRATE", "115200")))
     parser.add_argument("--pcb-timeout", type=float, default=float(os.getenv("TTT_PCB_TIMEOUT", "1.0")))
+    parser.add_argument(
+        "--pcb-write-chunk-delay",
+        type=float,
+        default=0.001,
+    )
     return parser.parse_args(argv)
 
 
@@ -90,6 +95,7 @@ def main(argv: list[str] | None = None) -> str:
                 "project": args.pcb_project,
                 "baudrate": args.pcb_baudrate,
                 "timeout_s": args.pcb_timeout,
+                "write_chunk_delay_s": args.pcb_write_chunk_delay,
             }
         int_model = load_int5_model(int5_ckpt, backend=args.backend, backend_options=backend_options)
         try:

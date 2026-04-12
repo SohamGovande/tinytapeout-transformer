@@ -1,7 +1,7 @@
 vocab_size: 27
-max_seq_len: 32
-d_model: 64
-n_layers: 3
-n_heads: 4
-head_dim: 16
-mlp_hidden_dim: 128
+max_seq_len: 8
+d_model: 16
+n_layers: 1
+n_heads: 2
+head_dim: 8
+mlp_hidden_dim: 32

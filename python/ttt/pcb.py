@@ -11,6 +11,7 @@ from serial.tools import list_ports
 DEFAULT_PCB_PROJECT = "tt_um_sohamgovande_transformer"
 DEFAULT_PCB_BAUDRATE = 115200
 DEFAULT_PCB_TIMEOUT_S = 1.0
+DEFAULT_PCB_WRITE_CHUNK_DELAY_S = 0.001
 DEFAULT_PCB_UIO_OE_PICO = 0x5F
 
 _BANK_IDS = {
@@ -93,9 +94,11 @@ class MicroPythonRawRepl:
         port: str,
         baudrate: int = DEFAULT_PCB_BAUDRATE,
         timeout_s: float = DEFAULT_PCB_TIMEOUT_S,
+        write_chunk_delay_s: float = DEFAULT_PCB_WRITE_CHUNK_DELAY_S,
     ) -> None:
         self.port = port
         self.timeout_s = float(timeout_s)
+        self.write_chunk_delay_s = max(0.0, float(write_chunk_delay_s))
         serial_kwargs = {
             "port": port,
             "baudrate": baudrate,
@@ -146,7 +149,8 @@ class MicroPythonRawRepl:
             chunk = payload[start : start + 96]
             self.serial.write(chunk)
             self.serial.flush()
-            time.sleep(0.01)
+            if self.write_chunk_delay_s > 0.0:
+                time.sleep(self.write_chunk_delay_s)
 
     def _enter_raw_repl(self) -> None:
         self.serial.reset_input_buffer()
@@ -406,6 +410,7 @@ class PcbSa2x2Device:
         project: str = DEFAULT_PCB_PROJECT,
         baudrate: int = DEFAULT_PCB_BAUDRATE,
         timeout_s: float = DEFAULT_PCB_TIMEOUT_S,
+        write_chunk_delay_s: float = DEFAULT_PCB_WRITE_CHUNK_DELAY_S,
         uio_oe_pico: int = DEFAULT_PCB_UIO_OE_PICO,
         repl: RawReplSession | None = None,
     ) -> None:
@@ -424,6 +429,7 @@ class PcbSa2x2Device:
             port=resolved_port,
             baudrate=resolved_baudrate,
             timeout_s=resolved_timeout_s,
+            write_chunk_delay_s=write_chunk_delay_s,
         )
         self._install_helper()
         self.reset()
