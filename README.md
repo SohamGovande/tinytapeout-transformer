@@ -1,43 +1,20 @@
-# Tiny Tapeout 2x2 Systolic Primitive Engine
+# tinytapeout-transformer
 
-This chip is a tiny host-driven math primitive: two 2x2 source banks feed a signed 2x2 systolic array, and the 2x2 result bank can also do accumulate, elementwise add, ReLU, and arithmetic right shift.
+TinyTapeout for a chip that can run layers of a *very simple* transformer:
+- 2x2 matmuls with accumulation*
+- elementwise add
+- ReLU
+- right shift
 
-The broader goal is to use this kind of primitive as a building block for a very, very simple transformer-style workload assembled from tiled matrix multiplies in quantized integer format. In that setting, the intended attention path is integer attention,
-
-`ReLU(QKᵀ)V`
-
-instead of the usual
-
-`softmax(QKᵀ)V`
-
-because a Tiny Tapeout chip does not have enough gates for practical floating-point numerics on-chip.
-
-## At a glance
-
-| Block | Shape / width | What it does |
-| --- | --- | --- |
-| Tiny Tapeout macro | `1x2` tiles, `161.00 x 225.76 um` | Physical footprint on the shuttle |
-| `A` bank | `2x2`, signed `5b` words | Host-written source matrix |
-| `B` bank | `2x2`, signed `5b` words | Host-written source matrix |
-| `C` bank | `2x2`, signed `11b` words | Result bank and accumulation target |
-| Systolic core | `2x2` MAC PEs | Computes one 2x2 matrix product |
-| Matmul operands | signed `5b` | The array consumes the full stored `A` and `B` words |
-| Matmul result | signed `11b` | Exact sum of two signed `5b x 5b` products |
-| Read bus | signed `9b` chunks | `A` and `B` fit in one chunk, `C` uses two |
+(if your transformer does int-attention** instead of softmax-attention 😅)
 
 ## Systolic array
 
 A 2×2 systolic array is the heart of the chip. Each PE owns one output entry, accumulates a 2-term dot product, forwards `A` horizontally, and forwards `B` vertically.
 
-### A operands
-
 ![A operand wavefront](docs/readme-assets/systolic-a-wavefront.svg)
 
-### B operands
-
 ![B operand wavefront](docs/readme-assets/systolic-b-wavefront.svg)
-
-### Output ownership
 
 ![Output formulas per PE](docs/readme-assets/systolic-output-formulas.svg)
 
@@ -180,15 +157,6 @@ For `cmd=2'b10`:
 | `ui_in[3]` | reserved |
 | `ui_in[7:4]` | shift amount for `OP_EW_SHIFT` |
 
-## Layout and published artifacts
-
-The repository already has the Tiny Tapeout publishing hooks in place:
-
-- [GitHub Pages](https://sohamgovande.github.io/tt-transformer/) publishes the rendered project docs.
-- [`.github/workflows/gds.yaml`](https://github.com/SohamGovande/tt-transformer/blob/master/.github/workflows/gds.yaml) includes a `viewer` job intended to publish the hardened layout viewer once the GDS flow succeeds.
-
-Right now the public Pages site is the rendered README, so this document uses logical diagrams instead of a real GDS screenshot. Once a hardened layout is available, the same flow can publish a viewer page and `make png` can export a static layout image for this section.
-
 # Quickstart
 
 ```sh
@@ -198,3 +166,6 @@ make test
 make lint
 make synth
 ```
+
+*the host has to tile these!
+**floating point numerics take up a lot of gates, so we do `ReLU(QKᵀ)V` for attention instead of the instead of the usual `softmax(QKᵀ)V`
