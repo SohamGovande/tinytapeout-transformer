@@ -1,9 +1,9 @@
 # Tiny Tapeout project information
 project:
-  title:        "2x2 Systolic Primitive Engine"
+  title:        "Transformer"
   author:       "Soham Govande"
   discord:      ""
-  description:  "A tiny host-driven primitive engine with signed 5-bit operands, an 11-bit 2x2 result bank, systolic matmul, accumulate, add, ReLU, and shift."
+  description:  "A tiny host-driven primitive engine for transformer layers with signed 5-bit operands, an 11-bit 2x2 result bank, systolic matmul, accumulate, add, ReLU, and shift."
   language:     "SystemVerilog"
   clock_hz:     10000000
   tiles:        "1x2"
