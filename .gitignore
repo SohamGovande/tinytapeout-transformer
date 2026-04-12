@@ -17,6 +17,6 @@ test/gate_level_netlist.v
 python/.pytest_cache/
 python/build/
 python/data/
-python/*.pt
+*.pt
 python/.venv/
 python/**/__pycache__/
