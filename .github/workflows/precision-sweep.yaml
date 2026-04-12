@@ -34,7 +34,7 @@ jobs:
         run: |
           cd test
           make clean
-          make DATA_W=${{ matrix.data_w }}
+          COCOTB_RESULTS_FILE=results_rtl_w${{ matrix.data_w }}.xml make DATA_W=${{ matrix.data_w }}
           ! grep failure results_rtl_w${{ matrix.data_w }}.xml
 
       - name: Test Summary

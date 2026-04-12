@@ -44,6 +44,6 @@ endif
 VERILOG_SOURCES += tb.v
 TOPLEVEL = tb
 COCOTB_TEST_MODULES = test
-COCOTB_RESULTS_FILE = results_$(if $(filter yes,$(GATES)),gl,rtl)_w$(DATA_W).xml
+COCOTB_RESULTS_FILE ?= results.xml
 
 include $(shell python3 -m cocotb_tools.config --makefiles)/Makefile.sim

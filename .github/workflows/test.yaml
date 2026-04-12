@@ -31,7 +31,7 @@ jobs:
         run: |
           cd test
           make clean
-          make DATA_W=${DATA_W}
+          COCOTB_RESULTS_FILE=results_rtl_w${DATA_W}.xml make DATA_W=${DATA_W}
           ! grep failure results_rtl_w${DATA_W}.xml
 
       - name: Test Summary
